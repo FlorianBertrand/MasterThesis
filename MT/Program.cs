@@ -116,7 +116,7 @@ namespace MT
                     
                 }
  
-                dataset = new bool[rows, col];
+                dataset = new bool[rows,col];
                 fs.Close();
                 fs = new StreamReader(filename);
                 Console.WriteLine("There are " + col + " columns and " + rows + " rows");
@@ -189,25 +189,32 @@ namespace MT
             rnd = new Random();
             it = 0;
             Output o = new Output();
-            int pop = 1000;
-            int off = 1000;
+            int pop = 100;
+            int off = 100;
             Tile so;
             TimeSpan ts;
             string elapsedTime;
             MaxTiling problem;
             MaxTile p;
             m = 0.02;
-            columns = 0.02;
-            d = 20;
+            columns = 0.01;
+            d = 1;
             string line;
             Stopwatch stopWatch = new Stopwatch();
             //foreach (string s in datasets)
             //{
             
-            string s = null;
+            //string s = null;
                 if (input(null))
                 {
-
+                Population population = new Population(pop, off, columns, 0, 0, m, d);
+                for (int i=0; i<10; i++)
+                {
+                    Console.WriteLine("Best solution : "+ population.newGeneration());
+                }
+                Coverage best = population.getBest();
+                Console.WriteLine("Best = " + best.getFit());    
+                /*
                     foreach (int i in nTileSizes)
                     {
                         n = 0;
@@ -216,11 +223,11 @@ namespace MT
                             stopWatch.Start();
                             //p = new MaxTile(columns, 0, false, new Tiling(), pop, off);
                             //so = p.solve(d, columns, m);
-                            problem = new MaxTiling(pop, off);
-                            Sol = problem.SolveFix(i, m, d, columns, pop, off, false);
+                            //problem = new MaxTiling(pop, off);
+                            //Sol = problem.SolveFix(i, m, d, columns, pop, off, false);
                             //Sol = problem.solve(columns, i, d, m, 0, false);
-                            cover = (double)Sol.getSize() / trues;
-                            it = problem.getGen();
+                            //cover = (double)Sol.getSize() / trues;
+                            //it = problem.getGen();
                             stopWatch.Stop();
                             ts = stopWatch.Elapsed;
                             elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
@@ -236,7 +243,7 @@ namespace MT
                             n++;
 
                         }
-                    }
+                    }*/
 
                 }
             //}

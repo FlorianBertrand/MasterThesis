@@ -10,10 +10,10 @@ namespace MT
     {
         public List<Tile> geno;
         public int size;
-        public Tiling()
+        public Tiling(int nTiles)
         {
             size = 0;
-            geno = new List<Tile>();
+            geno = new List<Tile>(nTiles);
             /*
             if (Fixed != null)
             {
@@ -24,7 +24,7 @@ namespace MT
 
         public void addTile(bool[] a, double fp, bool overlap)
         {
-            Tile temp = new Tile(a, geno, fp, overlap);
+            Tile temp = new Tile(a, geno, fp, overlap, geno.Count);
             geno.Add(temp);
             this.size += temp.getSize();
         }
@@ -57,7 +57,7 @@ namespace MT
                     }
                 }
 
-                geno.Add(new Tile(temp, geno, fp, overlap));
+                geno.Add(new Tile(temp, geno, fp, overlap, nTiles));
                 this.size += geno[i].getSize();
             }
             //qsort(0, nTiles);

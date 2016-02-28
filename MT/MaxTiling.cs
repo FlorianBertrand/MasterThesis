@@ -144,8 +144,8 @@ namespace MT
         static void onePointTilesCrossoverT(int p1, int p2, int i, double p, int t, double mu, double fp, bool overlap)
         {   
 
-            offspringTiling[i] = new Tiling();
-            offspringTiling[i + 1] = new Tiling();
+            offspringTiling[i] = new Tiling(t);
+            offspringTiling[i + 1] = new Tiling(t);
             double cross= rnd.Next(t-1)+1;
             for (int k = 0; k < t; k++)
             {
@@ -171,8 +171,8 @@ namespace MT
             bool[] temp2;
 
 
-            offspringTiling[i] = new Tiling();
-            offspringTiling[i + 1] = new Tiling();
+            offspringTiling[i] = new Tiling(t);
+            offspringTiling[i + 1] = new Tiling(t);
 
 
             for (int k = 0; k < t; k++)
@@ -411,7 +411,7 @@ namespace MT
         }
         public Tiling SolveFix(int nTiles, double colseed, int d, double m, int pop, int off, bool o)
         {
-            Tiling Fixed = new Tiling();
+            Tiling Fixed = new Tiling(nTiles);
             MaxTile p;
             Tile t;
             for (int i = 0; i < nTiles; i++)

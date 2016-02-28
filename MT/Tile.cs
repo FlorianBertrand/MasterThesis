@@ -27,7 +27,7 @@ namespace MT
         /// <param name="b">Array of tiles previously built -> problem constraints</param>
         /// <param name="fp">Percentage of falses allowed per rows</param>
         /// <param name="overlap">Bool set to true if tiles may overlap</param>
-        public Tile(bool[] a, List<Tile> b, double fp, bool overlap)
+        public Tile(bool[] a, List<Tile> b, double fp, bool overlap, int nTile)
         {
            
             geno = new bool[Program.col];

@@ -10,7 +10,11 @@ namespace MT
     class Output
     {
         public Output() { }
-
+        /// <summary>
+        /// Output a string s in file filename
+        /// </summary>
+        /// <param name="s">String to output</param>
+        /// <param name="filename">Name of the file</param>
         public void output(string s, string filename)
         {
             StreamWriter stream = new StreamWriter(filename, true, Encoding.ASCII);
@@ -19,6 +23,10 @@ namespace MT
             stream.Close();
 
         }
+        /// <summary>
+        /// Output the dataset in a file
+        /// </summary>
+        /// <param name="filename">Name of the file in which outputing the dataset</param>
         public void output(string filename)
         {
             StreamWriter stream = new StreamWriter(filename, false, Encoding.ASCII);
@@ -36,7 +44,11 @@ namespace MT
 
             stream.Close();
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="t"></param>
+        /// <param name="filename"></param>
         public void outputTiling(Tiling t, string filename)
         {   
 

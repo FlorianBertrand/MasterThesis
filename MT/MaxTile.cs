@@ -114,7 +114,7 @@ namespace MT
                     }
                 
                 }
-                individual[i] = new Tile(temp, Fix.geno, fp, overlap);
+                individual[i] = new Tile(temp, Fix.geno, fp, overlap,1);
             }
 
         }
@@ -185,8 +185,8 @@ namespace MT
                     }
                 }
             }
-            offspring[i] = new Tile(temp1, Fix.geno, fp, overlap);
-            offspring[i + 1] = new Tile(temp2, Fix.geno, fp, overlap);
+            offspring[i] = new Tile(temp1, Fix.geno, fp, overlap,1);
+            offspring[i + 1] = new Tile(temp2, Fix.geno, fp, overlap,1);
         }
         /// <summary>
         /// this function creates a new generation of offsprings with individuals as parents
