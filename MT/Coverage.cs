@@ -1,221 +1,375 @@
 ﻿using System;
 using System.Collections.Generic;
 namespace MT
-{
-    public class Coverage
+{   
+
+    public abstract class Coverage
     {
-        static bool[,] geno;
-        static bool[,] pheno;
-        static int[,] rec;
-        static int size;
-        static int nTiles;
-        static int overlap;
-        static int fp;
-        double fpAllowed;
-        static int[] cols;
-        static int[] rows;
-        static int[] fpRows;
-        /// <summary>
-        /// Instanciate a coverage with a bit probability of seed
-        /// </summary>
-        /// <param name="n">Number of tiles</param>
-        /// <param name="seed">Probability of setting a gene to 1</param>
-        /// <param name="f">number of false positives/row allowed</param>
-        /// <param name="o">number of overlaps allowed </param>
-        public Coverage(int n, double seed, double f, int o)
+        Comp[] cov;
+        int[] nGenes;
+        int[] nPheno;
+        protected double size;
+        protected int overlap;
+        int fp;
+        int over;
+        double mutation;
+        //Overlaps overlaps;
+        int kT;
+        double alpha=1;
+        int pos, neg;
+
+
+        public Coverage()
         {
-            size = 0;
-            nTiles = n;
-            Random rnd = new Random();
-            cols = new int[nTiles];
-            rows = new int[nTiles];
-            fpRows = new int[Program.rows];
-            geno = new bool[nTiles,Program.col];
-            pheno = new bool[nTiles,Program.rows];
-            rec = new int[Program.rows, Program.col];
-            overlap = o;
+            init();
+        }
+        protected void init()
+        {
+            over = 0;
+            overlap = 0;
             fp = 0;
-            fpAllowed = f;
-            arraysInit();
-            for (int k = 0; k < nTiles; k++)
-            {
-                for (int j = 0; j < Program.col; j++)
-                {
-                    if (rnd.NextDouble() < seed)
-                    {
-                        geno[k, j] = true;
-                        cols[k]++;
-                    }
-                    else
-                    {
-                        geno[k, j] = false;
-                    }
-                }
-            }
-            infer();
-
-
-        }
-        public void print()
-        {
-            for(int j=0; j<Program.col; j++)
-            {
-                Console.Write(geno[0, j]);
-            }
-            Console.WriteLine("");
-        }
-        /// <summary>
-        /// Initialize a new individual with an array
-        /// </summary>
-        /// <param name="n">Number of tiles</param>
-        /// <param name="g">Genotype of the individual</param>
-        /// <param name="f">number of false positives/row allowed</param>
-        /// <param name="o">number of overlaps allowed</param>
-        public Coverage(int n, bool[,] g, double f, int o)
-        {
+            kT = 0;
             size = 0;
-            nTiles = n;
-            Random rnd = new Random();
-            cols = new int[nTiles];
-            rows = new int[nTiles];
-            fpRows = new int[Program.rows];
-            geno = g;
-            rec = new int[Program.rows, Program.col];
-            pheno = new bool[nTiles, Program.rows];
-            overlap = o;
-            fp = 0;
-            fpAllowed = f;
-            arraysInit();
-            infer();
-
+            cov = new Comp[Program.nTiles];
+            nGenes = new int[Program.col];
+            nPheno = new int[Program.rows];
+            for (int j = 0; j < Program.col; j++)
+            {
+                nGenes[j] = 0;
+            }
+            for (int i = 0; i < Program.rows; i++)
+            {
+                nPheno[i] = 0;
+            }
         }
-        /// <summary>
-        /// Infer rows from the columns: a row is selected if there are less false positives on the row that what is allowed (regarding columns of the genotype)
-        /// </summary>
-        private void infer()
-        {   
+        protected virtual void constraints()
+        {
             
-            int f;
-            for(int i=0; i<Program.rows; i++)
-            {
-                for(int j=0; j<Program.col; j++)
-                {
-                    rec[i, j] = 0;
-                }
-            }
-            for (int k = 0; k < nTiles; k++)
-            {
-                cols[k] = 0;
-                rows[k] = 0;
-                for (int j = 0; j < Program.col; j++)
-                {
-                    if (geno[k, j])
-                    {
-                        cols[k]++;
-                    }
-                }
-                if (cols[k] != 0)
-                {
-                    for (int i = 0; i < Program.rows; i++)
-                    {
-                        f = 0;
-                        for (int j = 0; j < Program.col; j++)
-                        {
-                            if (geno[k, j])
-                            {
-                                if (!Program.dataset[i, j])
-                                {
-                                    f++;
-                                }
-                            }
-                        }
-                        if ((f / cols[k]) < fpAllowed)
-                        {
-                            pheno[k, i] = true;
-                            for(int j=0; j<Program.col; j++)
-                            {
-                                if(geno[k, j])
-                                {
-                                    rec[i, j]++;
-                                }
-                            }
-                            rows[k]++;
-                        }
-                        else
-                        {
-                            pheno[k, i] = false;
-                        }
-                    }
-                }
-            }
         }
-        /// <summary>
-        /// remove rows and/or columns to lose ones as less as possible while meeting the overlaps constraint
-        /// </summary>
-        private void repair()
+        public Coverage(double seed)
         {
-            int[,] oCols = new int[nTiles,Program.col];
-            int[,] oRows = new int[nTiles,Program.rows];
-            for(int k=0; k< nTiles; k++)
+            init();
+            initSeed(seed);
+            checkConstraints();
+        }
+        protected void initSeed(double seed)
+        {
+            for (int k = 0; k < Program.nTiles; k++)
             {
-                for(int j=0; j<Program.col; j++)
-                {
-                    oCols[k, j] = 0;
-                    if (geno[k, j])
-                    {
-                        for(int i=0; i<Program.rows; i++)
-                        {
-                            if (pheno[k, i] && rec[i,j] > 1)
-                            {
-                                oCols[k, j]++;
-                            }
-                        }
-                    }
-
-                }
-
-                for(int i=0; i<Program.rows; i++)
-                {
-                    oRows[k, i] = 0;
-                    if (pheno[k, i])
-                    {
-                        for(int j=0; j<Program.col; j++)
-                        {
-                            if(geno[k,i] && rec[i, j] > 1)
-                            {
-                                oRows[k, i]++;
-                            }
-                        }
-                    }
-
-                }
-            }
-
-            for (int k = 0; k < nTiles; k++)
-            {
+                kT++;
+                cov[k] = new Comp(seed, 0);
                 for (int j = 0; j < Program.col; j++)
                 {
-    
-
+                    if (cov[k].getGene(j))
+                    {
+                        nGenes[j]++;
+                    }
                 }
                 for (int i = 0; i < Program.rows; i++)
                 {
- 
-
+                    if (cov[k].getPheno(i))
+                    {
+                        nPheno[i]++;
+                    }
                 }
+                //size += cov[k].getSize();
 
             }
         }
+        public void checkConstraints()
+        {   
+                for(int k=0; k<Program.nTiles; k++)
+            {
+                for (int j = 0; j < Program.col; j++)
+                {
+                    if (cov[k].getGene(j))
+                    {
+                        nGenes[j]++;
+                    }
+                }
+                for (int i = 0; i < Program.rows; i++)
+                {
+                    if (cov[k].getPheno(i))
+                    {
+                        nPheno[i]++;
+                    }
+                }
+            }
+                constraints();
+                recomputeFit();
+        }
+
+        public virtual Coverage newCov()
+        {
+            return null;
+        }
+
+        public void addComp(Comp c)
+        {   
+            if (kT != Program.nTiles)
+            {
+                cov[kT] = c;
+
+                //size += c.getSize();
+                kT++;
+
+            }
+            else
+            {
+                throw new ArrayOutOfBoundException();
+            }
+            
+        }
+
+        protected void recomputeFit()
+        {
+            size = 0;
+            for(int k=0; k<Program.nTiles; k++)
+            {
+                size += cov[k].getSize();
+            }
+        }
+        protected void exclusiveCol() {
+            int max;
+            int maxk = 0;
+            for (int j = 0; j < Program.col; j++)
+            {
+                    max = 0;
+                    for (int k = 0; k < Program.nTiles; k++)
+                    {
+                        if (cov[k].getGene(j) && cov[k].getRow() > max)
+                        {
+                            max = cov[k].getRow();
+                            maxk = k;
+                        }
+                    }
+                    for (int k = 0; k < Program.nTiles; k++)
+                    {
+                        if (cov[k].getGene(j) && k != maxk)
+                        {
+                            cov[k].delCol(j);
+                        }
+                    }
+            }
+        }
+        protected void exclusiveRow()
+        {
+            int max;
+            int maxk = 0;
+            for (int i = 0; i < Program.rows; i++)
+            {
+                    max = 0;
+                    for (int k = 0; k < Program.nTiles; k++)
+                    {
+                        if (cov[k].getPheno(i) && cov[k].getCol() > max)
+                        {
+                            max = cov[k].getCol();
+                            maxk = k;
+                        }
+                    }
+                    for (int k = 0; k < Program.nTiles; k++)
+                    {
+                        if (cov[k].getPheno(i) && k != maxk)
+                        {
+                            cov[k].delRow(i);
+                        }
+                    }
+            }
+
+        }
+
+
+
+
+        protected int nBlock(int i, int j)
+        {
+            int temp = 0;
+            for(int k=0; k<Program.nTiles; k++)
+            {
+                if(getGene(k, j) && getPheno(k, i))
+                {
+                    temp++;
+                }
+            }
+            return temp;
+
+        }
+
+        protected int nOverlap(int i, int j)
+        {
+            int temp = nBlock(i, j);
+            if (temp <= 1)
+            {
+                return 0;
+            }
+            else
+            {
+                //overlap += (temp - 1);
+                return temp - 1;
+            }
+
+
+        }
+
+        protected void overlaps()
+        {
+            overlap = 0;
+            for (int j = 0; j < Program.col; j++)
+            {
+                if (nGenes[j] > 1)
+                {
+                    for (int i = 0; i < Program.rows; i++)
+                    {
+                        if (nPheno[i] > 1)
+                        {
+                            if (Program.dataset[i, j])
+                            {
+                                overlap += nOverlap(i, j);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+ 
+        /// <summary>
+        /// remove rows and/or columns to lose ones as less as possible while meeting the overlaps constraint
+        /// </summary>
+        protected void noOverlap()
+        {   bool o =false;
+            int temp;
+            for (int j = 0; j < Program.col; j++)
+            {
+                if (nGenes[j] > 1)
+                {
+                    for (int i = 0; i < Program.rows; i++)
+                    {
+                        if (nPheno[i] > 1)
+                        {
+                            if (Program.dataset[i, j])
+                            {
+                                temp = nBlock(i, j);
+                                if (temp > 1)
+                                {   
+                                    for(int k1=0; k1 < Program.nTiles - 1; k1++)
+                                    {
+                                        for(int k2=k1+1; k2<Program.nTiles; k2++)
+                                        {
+                                            repair(k1, k2);
+                                        }
+                                    }
+                                    o = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (o) {
+                size = 0;
+                for (int k = 0; k < Program.nTiles; k++)
+                {
+                    size += cov[k].getSize();
+                }
+            }
+        }
+        
+
+        private void repair(int k1, int k2)
+        {
+            int oCol = 0;
+            int oRow = 0;
+            bool col=true;
+            int t;
+            int best;
+            List<int> cols = new List<int>();
+            List<int> rows = new List<int>();
+            for(int i=0; i<Program.rows; i++)
+            {
+                if(cov[k1].getPheno(i) && cov[k2].getPheno(i))
+                {
+                    oRow++;
+                    rows.Add(i);
+                }
+            }
+            for(int j=0; j<Program.col; j++)
+            {
+                if(cov[k1].getGene(j) && cov[k2].getGene(j))
+                {
+                    oCol++;
+                    cols.Add(j);
+                }
+            }
+            if(cov[k1].getCol() > cov[k2].getCol())
+            {
+                t = k2;
+                best = cov[k2].getCol() - oCol;
+            }
+            else
+            {
+                t = k1;
+                best = cov[k2].getCol() - oCol;
+            }
+            if (cov[k1].getRow() - oRow < best)
+            {
+                t = k1;
+                col = false;
+                best = cov[k1].getRow() - oRow;
+            }
+            if (cov[k2].getRow() - oRow < best)
+            {
+                t = k2;
+                col = false;
+                best = cov[k2].getRow() - oRow;
+            }
+            if (col)
+            {
+                cov[t].delCol(cols);
+            }
+            else
+            {
+                cov[t].delRow(rows);
+            }
+
+        }
+
+
+        /// <summary>
+        /// Initialize arrays
+        /// </summary>
         private void arraysInit()
         {
             
-            for(int k=0; k< nTiles; k++)
+            for(int j = 0; j < Program.col; j++)
             {
-                rows[k] = 0;
-                cols[k] = 0;
+                nGenes[j] = 0;
+            }
+            for(int i=0; i<Program.rows; i++)
+            {
+                nPheno[i] = 0;
+            }
+
+        }
+
+        public virtual void print()
+        {
+            printTiling();
+        }
+
+        /// <summary>
+        /// Print tiling
+        /// </summary>
+        protected void printTiling()
+        {
+            Console.WriteLine("Best = " + getFit() + " overlaps:"+ getOverlap());
+            for (int k = 0; k < Program.nTiles; k++)
+            {
+                cov[k].printBlock();
             }
             
+
         }
+
         /// <summary>
         /// Return the gene of a tile
         /// </summary>
@@ -224,36 +378,188 @@ namespace MT
         /// <returns>Gene j of tile k</returns>
         public bool getGene(int k, int j)
         {
-            return geno[k, j];
+            return cov[k].getGene(j);
         }
-        public void del(int Tile, int indice)
+        
+        public bool getPheno(int k, int i)
         {
-            geno[Tile, indice] = false;
-            infer();
+            return cov[k].getPheno(i);
         }
-        public void add(int Tile, int indice)
-        {
-            geno[Tile, indice] = true;
-            infer();
-        }
+  
         /*
-        private int bestFlip()
+        public double getMutation()
         {
-
+            return mutation;
         }
         */
-        public void localSearch()
-        {
 
-        }
+        /*
         /// <summary>
-        /// return fitness of the tile
+        /// Return this
+        /// </summary>
+        /// <returns>This</returns>
+        public Coverage getCopy()
+        {
+            Coverage temp = newCov();
+            for(int k=0; k<Program.nTiles; k++)
+            {
+                temp.addComp(this.getComp(k));
+            }
+            temp.create();
+            return temp;
+        }
+        */
+        /// <summary>
+        /// Get fitness of the coverage
         /// </summary>
         /// <returns>fitness</returns>
-        public int getFit()
+        public virtual double getFit()
         {
-            return size;
+            return 0;
         }
 
+     
+        public virtual bool comparefitness(int a, int b)
+        {
+            if (a > b)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public virtual bool beterthan(Coverage c)
+        {
+                return false;
+        }
+        public void swapTiles(int a, int b)
+        {
+            Comp temp = cov[a];
+            cov[a] = cov[b];
+            cov[b] = temp;
+        }
+          /// <summary>
+          /// part function sort elements from the array offspring from min to max, around a "pivot"
+          /// </summary>
+          /// <param name="min">1st element of the partition</param>
+          /// <param name="max">last element of the partition</param>
+          /// <returns>it returns the pivot element</returns>
+          private int part(int min, int max)
+          {
+              int pivot = cov[max].getSize();
+              int it = min;
+              for (int i = min; i < max; i++)
+              {
+                  if (cov[i].getSize() > pivot)
+                  {
+                      swapTiles(i, it);
+                      it++;
+                  }
+              }
+              swapTiles(max, it);
+              return it;
+          }
+          /// <summary>
+          /// qsort function is a quicksort algorithm implement to sort the offspring array
+          /// </summary>
+          /// <param name="min">1st element of the partition to sort</param>
+          /// <param name="max">last element of the partition to sort</param>
+          private void qsort(int min, int max)
+          {
+              int p;
+              if (min < max)
+              {
+                  p = part(min, max);
+                  qsort(min, p - 1);
+                  qsort(p + 1, max);
+
+              }
+
+          }
+        public void sort()
+        {
+            qsort(0, (Program.nTiles-1));
+        }
+
+        public Comp getComp(int k)
+        {
+            return cov[k];
+        }
+
+        public int getOverlap()
+        {
+            return overlap;
+        }
+
+        protected void countDisc()
+        {
+            //size = 0;
+            pos = 0;
+            neg = 0;
+            for(int i=0; i<Program.rows; i++)
+            {
+                
+                if (nPheno[i]>0)
+                {
+                    
+                    if (Program.targetVar[i])
+                    {
+                        pos++;
+                    }
+                    else
+                    {
+                        neg++;
+                    }
+                    
+                }
+
+            }
+            size = (((double)pos / Program.plus) - (alpha * ((double) neg / Program.minus)));
+        }
+
+        protected void printDisc()
+        {
+            Console.WriteLine("Covered - transactions : "+neg+" ("+ ((double) neg / Program.minus)+"%)");
+            Console.WriteLine("Covered + transactions : " + pos + " (" + ((double)pos / Program.plus) + "%)");
+            Console.WriteLine("Difference +/-         : " + (pos - neg));
+        }
+
+        public string getDisc()
+        {
+            string temp;
+            temp = neg + " " + ((double)neg / Program.minus) + " " + pos + " " + ((double)pos / Program.plus);
+            return temp;
+        }
+        protected int nFp()
+        {
+            int f = 0;
+            for (int i = 0; i < Program.rows; i++)
+            {
+                for (int j = 0; j < Program.col; j++)
+                {
+                    if (!Program.dataset[i, j] && nBlock(i, j) > 0)
+                    {
+                        f++;
+                    }
+                }
+            }
+            return f;
+        }
+
+        public virtual int getFp()
+        {
+            return 0;
+        }
     }
+
+
+
+
+
+
+    
+
 }

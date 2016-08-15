@@ -30,51 +30,63 @@ namespace MT
         public void output(string filename)
         {
             StreamWriter stream = new StreamWriter(filename, false, Encoding.ASCII);
-            stream.WriteLine("sep=,");
+            //stream.WriteLine("sep=,");
             string[] temp = new string[Program.col];
             for (int i = 0; i < Program.rows; i++)
             {
 
                 for (int j = 0; j < Program.col; j++)
                 {
-                    temp[j] = Program.dataset[i, j].ToString();
+                    if (Program.dataset[i, j])
+                    {
+                        temp[j] = "1";
+                    }
+                    else
+                    {
+                        temp[j] = "0";
+                    }
                 }
-                stream.WriteLine(String.Join(",", temp));
+                stream.WriteLine(String.Join(" ", temp));
             }
 
             stream.Close();
         }
+
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="t"></param>
         /// <param name="filename"></param>
-        public void outputTiling(Tiling t, string filename)
+        public void outputTiling(Coverage t, string filename)
         {   
 
             StreamWriter stream = new StreamWriter(filename, false, Encoding.ASCII);
             stream.WriteLine("sep=,");
-            string[] temp = new string[Program.col];
-            foreach (Tile tt in t.geno)
+            string[] temp = new string[Program.col+Program.nTiles];
+            for(int k=0; k<Program.nTiles;k++)
             {
-
-                for (int j = 0; j < Program.col; j++)
+                for (int k1 = 0; k1 < Program.nTiles; k1++)
                 {
-                    temp[j] = tt.getGene(j).ToString();
+                    temp[k1] = ' '.ToString();
+                }
+                    for (int j = 0; j < Program.col; j++)
+                {
+                    temp[Program.nTiles+j] = t.getGene(k,j).ToString();
                 }
                 stream.WriteLine(String.Join(",", temp));
             }
 
 
-            temp = new string[t.geno.Count];
+            temp = new string[Program.nTiles];
 
             int i;
             for (int j = 0; j < Program.rows; j++)
             {
                 i = 0;
-                foreach (Tile tt in t.geno)
+                for (int k =0; k<Program.nTiles; k++)
                 {
-                    temp[i] = tt.getPheno(j).ToString();
+                    temp[i] = t.getPheno(k,j).ToString();
                     i++;
                 }
                 stream.WriteLine(String.Join(",", temp));

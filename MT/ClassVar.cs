@@ -22,7 +22,7 @@ namespace MT
             //Console.WriteLine(nClass);
 
         }
-        public void swap(int a, int b)
+        private void swap(int a, int b)
         {
             ClassValue temp1 = values[a];
             ClassValue temp2 = values[b];
@@ -32,7 +32,7 @@ namespace MT
             values.Insert(b, temp1);
 
         }
-        public int getHigher(int a)
+        private int getHigher(int a)
         {
             int co = 0;
             int re = 0;
@@ -46,7 +46,7 @@ namespace MT
             }
             return re;
         }
-        public void simpleSort(int a)
+        private void simpleSort(int a)
         {
             int ind = this.getHigher(a);
             if (ind != a)
@@ -90,5 +90,19 @@ namespace MT
                 //Console.WriteLine("simplesort");
             }
         }
+
+        public bool isBool()
+        {
+            
+            foreach(ClassValue cv in values)
+            {
+                if (!cv.boolean())
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        
     }
 }

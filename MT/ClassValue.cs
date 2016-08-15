@@ -27,14 +27,11 @@ namespace MT{
         {
             return count;
         }
-        public void increment()
-        {
-            count++;
-        }
+        
         public bool boolean()
         {
-            string[] flagFalse = new string[] { "F", "false", "f", "False", "0" };
-            string[] flagTrue = new string[] { "T", "true", "t", "True", "1" };
+            string[] flagFalse = new string[] { "F", "false", "f", "False", "0", "negative", "nowin"};
+            string[] flagTrue = new string[] { "T", "true", "t", "True", "1", "positive", "won"};
 
             foreach (string s in flagFalse)
             {
@@ -55,7 +52,7 @@ namespace MT{
 
         public bool isFalse()
         {
-            string[] flagFalse = new string[] { "F", "false", "f", "False", "0" };
+            string[] flagFalse = new string[] { "F", "false", "f", "False", "0", "negative" };
             foreach (string s in flagFalse)
             {
                 if (value == s)

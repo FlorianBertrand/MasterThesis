@@ -43,17 +43,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArrayOutOfBoundException.cs" />
+    <Compile Include="Block.cs" />
+    <Compile Include="Comp.cs" />
+    <Compile Include="BMF.cs" />
     <Compile Include="ClassValue.cs" />
     <Compile Include="ClassVar.cs" />
     <Compile Include="Coverage.cs" />
-    <Compile Include="MaxTile.cs" />
-    <Compile Include="MaxTiling.cs" />
+    <Compile Include="Disc.cs" />
     <Compile Include="Output.cs" />
     <Compile Include="Population.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tile.cs" />
     <Compile Include="Tiling.cs" />
+    <Compile Include="WrongProblemException.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
